@@ -13,6 +13,15 @@ containers, orchestration, monitoring, CI).
   <img src="docs/images/forecasting_rmse_comparison.png" width="47%" alt="Forecasting RMSE comparison chart">
 </p>
 
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.13-EE4C2C?logo=pytorch&logoColor=white)
+![PyTorch Geometric](https://img.shields.io/badge/PyG-2.8-3C76D1)
+![Stable-Baselines3](https://img.shields.io/badge/Stable--Baselines3-PPO%20%2F%20SAC-6A2C70)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?logo=fastapi&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-manifests-326CE5?logo=kubernetes&logoColor=white)
+![LangGraph](https://img.shields.io/badge/🦜🕸️-LangGraph-1C3C3C)
+
 ## Contents
 
 - [Architecture](#architecture)
