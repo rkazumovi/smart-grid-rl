@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Data: regenerated from src/forecasting/data_loader.py + build_dataset.py, not
+# committed -- keeps the repo small and avoids redistributing the raw Elia CSVs.
+# Remove these two lines if you'd rather version the data itself.
+data/raw/
+data/processed/
+
+# Trained checkpoints + the RAG index (rebuilt by build_rag_index.py): regenerated
+# by the training scripts (see README's "Getting Started"), and .pt/.zip
+# checkpoints add up in size fast. Remove this line (or switch to Git LFS) if you
+# want the actual trained weights in the repo.
+outputs/
+
+# Env files that may hold API keys (ANTHROPIC_API_KEY, etc.)
+.env

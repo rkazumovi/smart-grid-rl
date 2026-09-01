@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grid-api
+  namespace: smart-grid-rl
+  labels:
+    app: grid-api
+spec:
+  type: ClusterIP
+  selector:
+    app: grid-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

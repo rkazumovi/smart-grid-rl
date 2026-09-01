@@ -1,0 +1,25 @@
+# Optional: scales grid-api between 2 and 6 pods on CPU utilization. Requires the
+# cluster's metrics-server to be installed (most managed Kubernetes offerings ship it by
+# default; a bare kubeadm/minikube cluster may need it added separately) -- without it,
+# this HPA is created successfully but reports an "unknown" current CPU value and never
+# actually scales anything, rather than failing loudly, which is worth knowing before
+# assuming it's working.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: grid-api
+  namespace: smart-grid-rl
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: grid-api
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

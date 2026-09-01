@@ -1,0 +1,30 @@
+# Runtime dependencies for the FastAPI service (src/api/) only -- NOT the full project.
+# The grid_intelligence/ (RAG + LangGraph + LLM agents) components have their own separate
+# dependencies (sentence-transformers, faiss-cpu, langgraph, anthropic, requests) that the
+# API doesn't import, so they're deliberately left out of this file to keep the API's
+# Docker image smaller and its dependency surface honest about what it actually uses.
+#
+# torch and torch_geometric are installed separately in the Dockerfile (CPU-only wheels,
+# see the comment there) rather than listed here, since the correct install command
+# depends on the target platform (CPU vs CUDA) in a way a plain requirements.txt line
+# can't express.
+#
+# Versions pinned to what this project was actually built and tested against (see
+# `pip freeze` on the dev machine) -- not guessed.
+fastapi==0.141.1
+uvicorn[standard]==0.46.0
+pydantic==2.13.3
+pandas==2.3.3
+numpy==2.4.4
+prometheus-fastapi-instrumentator==8.1.0
+
+# Needed only for the /policy/{policy_name} endpoint (policy_inference.py ->
+# training/benchmark.py -> environment/grid_env.py -> agents/marl_agent.py). This pulls in
+# pandapower (power-flow simulation, itself a fairly heavy dependency) and
+# stable_baselines3 -- the /forecast endpoints alone do not need any of this, but there is
+# currently no way to run the API with only the forecasting endpoints enabled without
+# editing main.py, so it's listed here as a real, required dependency rather than optional.
+gymnasium==1.3.0
+pandapower==3.5.4
+stable-baselines3==2.9.0
+matplotlib==3.10.9

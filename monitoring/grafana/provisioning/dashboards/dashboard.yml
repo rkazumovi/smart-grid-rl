@@ -1,0 +1,14 @@
+# Tells Grafana to auto-load any dashboard JSON dropped into
+# monitoring/grafana/dashboards/ (see grid_api_dashboard.json) on startup, instead of
+# requiring a manual JSON import through the UI.
+apiVersion: 1
+
+providers:
+  - name: grid-api-dashboards
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards/files

@@ -1,0 +1,17 @@
+# Keeps the build context (and therefore image layers) limited to what the API image's
+# COPY instructions in the Dockerfile actually need: src/, data/processed/, outputs/.
+.git
+.venv
+venv
+__pycache__
+*.pyc
+notebooks/
+data/raw/
+*.ipynb_checkpoints
+.pytest_cache
+.mypy_cache
+Dockerfile
+docker-compose.yml
+k8s/
+.github/
+README.md

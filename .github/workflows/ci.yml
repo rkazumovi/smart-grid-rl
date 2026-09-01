@@ -1,0 +1,78 @@
+# CI for the Smart Grid RL project's deployable API layer (src/api/, Dockerfile).
+#
+# This deliberately does NOT run the forecasting/RL training scripts (lstm_model.py,
+# benchmark.py, etc.) or the notebooks -- those need real Elia data and, for the RL
+# side, GPU time measured in hours, neither of which belongs in a CI job that should
+# finish in a couple of minutes. What CI verifies instead: the code that ships (the API
+# and its tests) actually imports and runs correctly, and the Docker image that would be
+# deployed actually builds -- both real, previously-broken-in-practice failure modes in
+# this project (an import collision once broke the pipeline at runtime with no static
+# check that would have caught it; this workflow's "import the app and hit /health" test
+# is exactly that check, made permanent).
+#
+# Lint is split into two severities on purpose: `src/api/` and `tests/` (the code this
+# workflow owns end to end) fail the build on any finding; the rest of `src/` is linted
+# with --exit-zero (reported in the log, never blocking) since it predates this CI setup
+# and hasn't been swept for the same bar -- failing the very first CI run on pre-existing,
+# unrelated files would make the workflow worse than useless.
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-api.txt', 'requirements-dev.txt') }}
+
+      - name: Install CPU-only torch + torch_geometric
+        run: |
+          pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install torch_geometric==2.8.0.post1
+
+      - name: Install API + dev dependencies
+        run: |
+          pip install -r requirements-api.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint (strict on src/api/ and tests/, advisory elsewhere)
+        run: |
+          ruff check src/api/ tests/
+          ruff check src/ --exit-zero
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build only -- not pushed anywhere. See k8s/deployment.yaml's comment on the
+      # registry-push step this project deliberately leaves unwired.
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: grid-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

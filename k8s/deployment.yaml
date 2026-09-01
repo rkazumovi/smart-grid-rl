@@ -1,0 +1,82 @@
+# Deployment for the forecasting/policy API (src/api/, Dockerfile).
+#
+# `image` below is a placeholder -- replace `your-registry/grid-api:latest` with wherever
+# you actually push the image built from the project's Dockerfile (a local
+# `docker build -t grid-api .` alone is NOT reachable by a real cluster's nodes; they pull
+# from a registry, not your laptop's local Docker image cache). The GitHub Actions
+# workflow (.github/workflows/ci.yml) builds that same image on every push but does not
+# push or deploy it anywhere -- wiring up a registry push and a real `kubectl apply` step
+# is a deliberate next step left undone here, not an oversight, since it needs a registry
+# and cluster this portfolio project doesn't have provisioned.
+#
+# Resource requests/limits below are sized for this project's actual models (LSTM/
+# Transformer forecasters: tens of thousands of parameters; MARL policy: a handful of
+# small actor networks) running CPU inference for one request at a time -- these are
+# real inference workloads, not placeholders, but they're small ones, so don't read these
+# numbers as generically "what an ML API needs."
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grid-api
+  namespace: smart-grid-rl
+  labels:
+    app: grid-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grid-api
+  template:
+    metadata:
+      labels:
+        app: grid-api
+      annotations:
+        # Annotation-based scrape discovery for a plain (non-Operator) Prometheus pointed
+        # at the cluster -- an alternative to this project's own docker-compose Prometheus,
+        # which instead uses the static config in monitoring/prometheus.yml. A cluster
+        # already running the Prometheus Operator would use a ServiceMonitor CRD instead
+        # of these annotations; that CRD isn't included here since it assumes an installed
+        # CRD this project doesn't ship or control.
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: grid-api
+          image: your-registry/grid-api:latest
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: grid-api-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            # Not read-only: pandapower/numba write a JIT/bytecode cache under the
+            # container's home directory on first use, and this hasn't been re-pointed at
+            # a dedicated writable volume (e.g. an emptyDir mount) -- a real hardening
+            # pass would do that and flip this to true, but that's untested here.
+            readOnlyRootFilesystem: false

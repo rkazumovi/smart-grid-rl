@@ -1,0 +1,7 @@
+# Dev/CI-only tooling -- not needed to run the API or train a model, only to lint and
+# test this repo. Installed on top of requirements-api.txt in CI (see
+# .github/workflows/ci.yml); kept as a separate file so a production image (Dockerfile)
+# never installs a test framework or linter it will never use.
+pytest==9.1.1
+httpx==0.28.1
+ruff==0.15.11

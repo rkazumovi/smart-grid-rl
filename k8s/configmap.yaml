@@ -1,0 +1,14 @@
+# Non-secret runtime config for the API. Nothing here is sensitive: unlike the LLM-agent
+# pipeline (grid_intelligence/), the forecasting and policy endpoints served by this API
+# call no external API and need no API key -- everything they use is a checkpoint file
+# already baked into the image (see Dockerfile). If that ever changes (e.g. wiring
+# LLM_BACKEND=anthropic into this service), the key belongs in a Kubernetes Secret, not
+# here -- never put a credential in a ConfigMap, since ConfigMaps are plain text to
+# anyone with read access to the namespace.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grid-api-config
+  namespace: smart-grid-rl
+data:
+  LOG_LEVEL: "info"

@@ -1,0 +1,13 @@
+# Prometheus scrape config for the Smart Grid RL API. In docker-compose.yml, Prometheus
+# and the API run as separate containers on the same user-defined network, so "api" below
+# resolves via Docker's built-in DNS to the api container -- not localhost, which from
+# inside the prometheus container would mean "this Prometheus container itself".
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: grid-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["api:8000"]
